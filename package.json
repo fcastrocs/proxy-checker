@@ -1,5 +1,5 @@
 {
-  "name": "typescript-boilerplate",
+  "name": "proxy-checker",
   "version": "1.0.1",
   "description": "",
   "main": "./lib/app.js",
