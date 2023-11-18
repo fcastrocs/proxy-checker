@@ -1,43 +1,43 @@
-import Checker, { CheckConfig } from "checker-boilerplate";
-import { SocksProxyAgent, SocksProxyAgentOptions } from "socks-proxy-agent";
+import Checker, { CheckConfig, Stats } from "@fcastrocs/checker-boilerplate";
+import { SocksProxyAgent } from "socks-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import fetch from "node-fetch";
-
 import fs from "fs";
 
+const checker = new Checker(checkFunction, writeResultFunction, { checkerName: "proxy-checker", disableInterface: false });
+checker.addStatsProperties({
+    good: 0,
+    bad: 0,
+});
+checker.start();
+
 async function checkFunction(this: Checker, checkConfig: CheckConfig) {
-  const info: SocksProxyAgentOptions = {
-    hostname: checkConfig.combo.user,
-    port: Number(checkConfig.combo.pass),
-  };
+    const proxy = `${checkConfig.data.email}:${Number(checkConfig.data.password)}`;
+    let agent;
 
-  const agent = new SocksProxyAgent(info);
+    try {
+        if (this.config.proxy.type === "https") {
+            agent = new HttpsProxyAgent(`http://${proxy}`);
+        } else {
+            agent = new SocksProxyAgent(`socks://${proxy}`);
+        }
+    } catch (error) {
+        return checker.finishedCheck(checkConfig, "bad");
+    }
 
-  try {
-    await fetch("https://steamcommunity.com/", { agent });
-    return checker.finishedCheck(checkConfig, "good-proxy");
-  } catch (error) {
-    return checker.finishedCheck(checkConfig, "bad-proxy");
-  }
+    try {
+        await fetch("https://steamcommunity.com/", { agent, signal: AbortSignal.timeout(this.config.timeout) });
+        checker.finishedCheck(checkConfig, "good");
+    } catch (error) {
+        checker.finishedCheck(checkConfig, "bad");
+    }
 }
 
 function writeResultFunction(this: Checker, checkConfig: CheckConfig, result: string) {
-  if (result === "bad-proxy") {
-    this.stats.badProxy++;
-    return;
-  }
-  this.stats.goodProxy++;
-  return fs.appendFileSync(
-    checker.folder + "/good-proxies.txt",
-    `${checkConfig.combo.user}:${checkConfig.combo.pass}\n`
-  );
-}
+    this.stats[result as keyof Stats]++;
+    if (result === "bad") {
+        return;
+    }
 
-const checker = new Checker(checkFunction, writeResultFunction, "proxy-checker", {
-  disableInterface: false,
-  skipProxyLoad: true,
-});
-checker.addStatsProperties({
-  goodProxy: 0,
-  badProxy: 0,
-});
-checker.start();
+    fs.appendFileSync(this.getResultsPath() + "/good.txt", `${checkConfig.data.email}:${checkConfig.data.password}\n`);
+}

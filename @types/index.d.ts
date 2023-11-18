@@ -1,1 +1,4 @@
-// typings go here
+interface Stats {
+    good: number;
+    bad: number;
+}
