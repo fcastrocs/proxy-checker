@@ -1,13 +1,14 @@
 {
-    "threads": 1000,
-    "timeout": 15000,
-    "proxy": {
-        "loadFromFile": true,
-        "type": "https",
-        "host": "",
-        "port": 0,
-        "socksType": 4,
-        "user": "",
-        "pass": ""
-    }
+  "threads": 100,
+  "timeout": 8000,
+  "useProxies": false,
+  "proxy": {
+    "loadFromFile": true,
+    "type": "socks",
+    "host": "",
+    "port": 0,
+    "socksType": 4,
+    "user": "",
+    "pass": ""
+  }
 }

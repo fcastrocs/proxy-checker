@@ -1,4 +1,5 @@
 interface Stats {
-    good: number;
-    bad: number;
+  steamConnectable: number;
+  smtpConnectable: number;
+  bad: number;
 }

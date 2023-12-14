@@ -11,13 +11,16 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.9.1",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.10.4",
+    "@types/portscanner": "^2.1.4",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@fcastrocs/checker-boilerplate": "^1.0.14",
+    "@fcastrocs/checker-boilerplate": "^1.2.2",
+    "get-port": "^7.0.0",
     "https-proxy-agent": "^7.0.2",
     "node-fetch": "^3.3.2",
+    "portscanner": "^2.2.0",
     "socks-proxy-agent": "^8.0.2"
   }
 }
