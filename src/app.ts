@@ -38,12 +38,15 @@ async function checkFunction(this: Checker, checkConfig: CheckConfig) {
     const socket = agent.sockets["steamcommunity.com:443:"][0];
     socket.destroy();
 
+    //return checker.finishedCheck(checkConfig, "steamConnectable");
+
     portscanner.checkPortStatus(587, checkConfig.data.email, function (error, status) {
       if (error || status === "closed") {
         return checker.finishedCheck(checkConfig, "steamConnectable");
       }
       return checker.finishedCheck(checkConfig, "smtpConnectable");
     });
+
   } catch (error) {
     checker.finishedCheck(checkConfig, "bad");
   }

@@ -1,6 +1,6 @@
 {
-  "threads": 100,
-  "timeout": 8000,
+  "threads": 250,
+  "timeout": 15000,
   "useProxies": false,
   "proxy": {
     "loadFromFile": true,
