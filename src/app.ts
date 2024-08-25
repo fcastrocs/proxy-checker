@@ -1,13 +1,9 @@
 import Checker, { CheckConfig, Stats } from "@fcastrocs/checker-boilerplate";
-import { SocksProxyAgent } from "socks-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import fetch from "node-fetch";
 import fs from "fs";
-import portscanner from "portscanner";
+import SteamClient from "@fcastrocs/steamclient";
 
 const checker = new Checker(checkFunction, writeResultFunction, {
   checkerName: "proxy-checker",
-  disableInterface: false,
 });
 
 checker.addStatsProperties({
@@ -19,37 +15,27 @@ checker.addStatsProperties({
 checker.start();
 
 async function checkFunction(this: Checker, checkConfig: CheckConfig) {
-  const proxy = `${checkConfig.data.email}:${Number(checkConfig.data.password)}`;
-  let agent;
+  const steamClient = new SteamClient({
+    type: "tcp",
+    timeout: this.config.timeout,
+    proxy: {
+      type: "socks",
+      host: checkConfig.data.email,
+      port: Number(checkConfig.data.password),
+      socksType: 4,
+    },
+    steamCM: { host: "162.254.193.74", port: 27017 },
+    minimal: true,
+  });
 
   try {
-    if (this.config.proxy.type === "https") {
-      agent = new HttpsProxyAgent(`http://${proxy}`);
-    } else {
-      agent = new SocksProxyAgent(`socks://${proxy}`);
-    }
+    await steamClient.connect();
+    steamClient.disconnect();
   } catch (error) {
     return checker.finishedCheck(checkConfig, "bad");
   }
 
-  try {
-    // console.log(agent.sockets);
-    await fetch("https://steamcommunity.com/", { agent, signal: AbortSignal.timeout(this.config.timeout) });
-    const socket = agent.sockets["steamcommunity.com:443:"][0];
-    socket.destroy();
-
-    //return checker.finishedCheck(checkConfig, "steamConnectable");
-
-    portscanner.checkPortStatus(587, checkConfig.data.email, function (error, status) {
-      if (error || status === "closed") {
-        return checker.finishedCheck(checkConfig, "steamConnectable");
-      }
-      return checker.finishedCheck(checkConfig, "smtpConnectable");
-    });
-
-  } catch (error) {
-    checker.finishedCheck(checkConfig, "bad");
-  }
+  return checker.finishedCheck(checkConfig, "steamConnectable");
 }
 
 async function writeResultFunction(this: Checker, checkConfig: CheckConfig, result: string) {

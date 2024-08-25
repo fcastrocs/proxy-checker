@@ -1,9 +1,9 @@
 {
-  "threads": 250,
+  "threads": 500,
   "timeout": 15000,
   "useProxies": false,
   "proxy": {
-    "loadFromFile": true,
+    "loadFromFile": false,
     "type": "socks",
     "host": "",
     "port": 0,
