@@ -2,6 +2,11 @@ import Checker, { CheckConfig, Stats } from "@fcastrocs/checker-boilerplate";
 import fs from "fs";
 import SteamClient from "@fcastrocs/steamclient";
 
+const servers = [
+
+];
+let index = 0;
+
 const checker = new Checker(checkFunction, writeResultFunction, {
   checkerName: "proxy-checker",
 });
@@ -15,6 +20,9 @@ checker.addStatsProperties({
 checker.start();
 
 async function checkFunction(this: Checker, checkConfig: CheckConfig) {
+  const steamcm = servers[((index++ % servers.length) + servers.length) % servers.length];
+  const split = steamcm.split(":");
+
   const steamClient = new SteamClient({
     type: "tcp",
     timeout: this.config.timeout,
@@ -22,30 +30,38 @@ async function checkFunction(this: Checker, checkConfig: CheckConfig) {
       type: "socks",
       host: checkConfig.data.email,
       port: Number(checkConfig.data.password),
-      socksType: 4,
+      socksType: 5,
     },
-    steamCM: { host: "162.254.193.74", port: 27017 },
+    steamCM: { host: split[0], port: Number(split[1]) },
     minimal: true,
+  });
+
+  steamClient.once("disconnected", (error) => {
+    console.log(error);
   });
 
   try {
     await steamClient.connect();
     steamClient.disconnect();
   } catch (error) {
-    return checker.finishedCheck(checkConfig, "bad");
+    return checker.finishedCheck(checkConfig, {
+      res: "bad",
+      data: checkConfig.data.email + ":" + checkConfig.data.password + "\n" + error.message,
+    });
   }
 
-  return checker.finishedCheck(checkConfig, "steamConnectable");
+  return checker.finishedCheck(checkConfig, { res: "steamConnectable" });
 }
 
-async function writeResultFunction(this: Checker, checkConfig: CheckConfig, result: string) {
-  this.stats[result as keyof Stats]++;
-  if (result === "bad") {
+async function writeResultFunction(this: Checker, checkConfig: CheckConfig, result: any) {
+  this.stats[result.res as keyof Stats]++;
+  if (result.res === "bad") {
+    await fs.promises.appendFile(this.getResultsPath() + `/${result.res}.txt`, `${result.data}\n\n`);
     return;
   }
 
-  await fs.promises.appendFile(
-    this.getResultsPath() + `/${result}.txt`,
-    `${checkConfig.data.email}:${checkConfig.data.password}\n`
-  );
+  // await fs.promises.appendFile(
+  //   this.getResultsPath() + `/${result.res}.txt`,
+  //   `${checkConfig.data.email}:${checkConfig.data.password}\n`
+  // );
 }

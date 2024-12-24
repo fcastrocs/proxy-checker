@@ -1,13 +1,13 @@
 {
-  "threads": 500,
-  "timeout": 15000,
+  "threads": 600,
+  "timeout": 50000,
   "useProxies": false,
   "proxy": {
     "loadFromFile": false,
     "type": "socks",
     "host": "",
     "port": 0,
-    "socksType": 4,
+    "socksType": 5,
     "user": "",
     "pass": ""
   }
